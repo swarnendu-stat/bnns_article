@@ -1,0 +1,133 @@
+\documentclass[
+]{jss}
+
+%% recommended packages
+\usepackage{orcidlink,thumbpdf,lmodern}
+
+\usepackage[utf8]{inputenc}
+
+\author{
+Swarnendu Chatterjee~\orcidlink{0000-0000-0000-0000}\\GSK
+}
+\title{Bayesian Neural Networks in R: The \pkg{bnns} Package}
+
+\Plainauthor{Swarnendu Chatterjee}
+\Plaintitle{Bayesian Neural Networks in R: The bnns Package}
+\Shorttitle{\pkg{bnns}: Bayesian Neural Networks in R}
+
+
+\Abstract{
+Bayesian Neural Networks (BNNs) combine the flexibility of neural
+networks with the principled uncertainty quantification of Bayesian
+methods, making them powerful tools for predictive modeling and
+decision-making under uncertainty. The bnns package provides an R
+interface for building and training BNNs using the probabilistic
+programming capabilities of Stan. With a formula-based interface,
+customizable priors, and support for various activation and output
+functions, bnns enables users to model complex relationships in
+regression and classification tasks. Additionally, the package offers
+posterior summaries for parameters and predictions, aiding
+interpretability and probabilistic reasoning. Designed for small to
+moderately sized datasets, bnns is particularly well-suited for
+applications in clinical research, finance, and other domains requiring
+robust uncertainty quantification. This article presents the
+implementation of the bnns package, its core features, and benchmarking
+results, highlighting its utility and performance across diverse machine
+learning tasks.
+}
+
+\Keywords{bayesian neural networks, probabilistic modeling, uncertainty
+quantification, machine learning, \proglang{R}}
+\Plainkeywords{bayesian neural networks, probabilistic
+modeling, uncertainty quantification, machine learning, R}
+
+%% publication information
+%% \Volume{50}
+%% \Issue{9}
+%% \Month{June}
+%% \Year{2012}
+%% \Submitdate{}
+%% \Acceptdate{2012-06-04}
+
+\Address{
+    Swarnendu Chatterjee\\
+    GSK\\
+    First line\\
+Second line\\
+  E-mail: \email{swarnendu.stat@gmail.com}\\
+  URL: \url{https://posit.co}\\~\\
+  }
+
+
+% tightlist command for lists without linebreak
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+
+\usepackage{amsmath}
+
+\begin{document}
+
+
+
+\section{Introduction}\label{introduction}
+
+This template demonstrates some of the basic LaTeX that you need to know
+to create a JSS article.
+
+\subsection{Code formatting}\label{code-formatting}
+
+In general, don't use Markdown, but use the more precise LaTeX commands
+instead:
+
+\begin{itemize}
+\item
+  \proglang{Java}
+\item
+  \pkg{plyr}
+\end{itemize}
+
+One exception is inline code, which can be written inside a pair of
+backticks (i.e., using the Markdown syntax).
+
+If you want to use LaTeX commands in headers, you need to provide a
+\texttt{short-title} attribute. You can also provide a custom identifier
+if necessary. See the header of Section \ref{r-code} for example.
+
+\section[R code]{\proglang{R} code}\label{r-code}
+
+Can be inserted in regular R markdown blocks.
+
+\begin{CodeChunk}
+\begin{CodeInput}
+R> x <- 1:10
+R> x
+\end{CodeInput}
+\begin{CodeOutput}
+ [1]  1  2  3  4  5  6  7  8  9 10
+\end{CodeOutput}
+\end{CodeChunk}
+
+\subsection[Features specific to rticles]{Features specific to
+\pkg{rticles}}\label{features-specific-to}
+
+\begin{itemize}
+\tightlist
+\item
+  Adding short titles to section headers is a feature specific to
+  \pkg{rticles} (implemented via a Pandoc Lua filter). This feature is
+  currently not supported by Pandoc and we will update this template if
+  \href{https://github.com/jgm/pandoc/issues/4409}{it is officially
+  supported in the future}.
+\item
+  Using the \texttt{\textbackslash{}AND} syntax in the \texttt{author}
+  field to add authors on a new line. This is a specific to the
+  \texttt{rticles::jss\_article} format.
+\end{itemize}
+
+
+
+
+\end{document}
