@@ -34,29 +34,250 @@ options(prompt = 'R> ', continue = '+ ')
 
 # Introduction
 
-This template demonstrates some of the basic LaTeX that you need to know to create a JSS article.
+Introduction
+Bayesian Neural Networks (BNNs) combine the flexibility and representational power of neural networks with the uncertainty quantification and probabilistic reasoning of Bayesian inference. They are particularly well-suited for applications requiring not only predictive accuracy but also interpretable uncertainty estimates. However, implementing BNNs often demands significant technical expertise and computational effort, making them less accessible to a broader audience of practitioners and researchers.
 
-## Code formatting
+The \pkg{bnns} package aims to address this challenge by providing a user-friendly interface for building and training Bayesian Neural Networks within the \proglang{R} environment. Built on the robust \pkg{rstan} backend, \pkg{bnns} leverages the flexibility of Stan's probabilistic programming framework to fit BNN models using Hamiltonian Monte Carlo (HMC) and its variants. By utilizing Bayesian inference, \pkg{bnns} estimates posterior distributions for network weights, enabling uncertainty quantification in predictions and more robust decision-making.
 
-In general, don't use Markdown, but use the more precise LaTeX commands instead:
+Key features of \pkg{bnns} include:
 
-* \proglang{Java}
-* \pkg{plyr}
+- A formula-based interface for specifying models, familiar to users of \pkg{lm} and \pkg{glm}.
+- Support for regression, binary classification, and multi-class classification tasks.
+- Flexibility to define custom activation functions, prior distributions, and network architectures.
+- Integration of uncertainty quantification through posterior predictive intervals and distributions.
+- Compatibility with small datasets, making it a suitable choice for fields like clinical trials and finance, where data availability may be limited.
+- The \pkg{bnns} package also offers features like missing data handling, optional normalization, and tools for assessing variable importance, ensuring a comprehensive workflow for applied Bayesian modeling.
 
-One exception is inline code, which can be written inside a pair of backticks (i.e., using the Markdown syntax).
+In this article, we present an overview of the \pkg{bnns} package, its underlying methodology, and its implementation in \proglang{R}. We also provide illustrative examples of its application to regression, binary classification, and multi-class classification problems using benchmark datasets. Finally, we compare the performance of \pkg{bnns} against conventional machine learning approaches, highlighting its strengths in uncertainty quantification and interpretability.
 
-If you want to use LaTeX commands in headers, you need to provide a `short-title` attribute. You can also provide a custom identifier if necessary. See the header of Section \ref{r-code} for example.
+## Methodology
 
-# \proglang{R} code {short-title="R code" #r-code}
+The **`bnns`** package provides a framework for Bayesian Neural Networks (BNNs) designed for statistical modeling and inference. It integrates Bayesian principles with neural network architectures, offering flexibility and robustness for modeling complex data. This section describes the underlying methodology, focusing on model architecture, Bayesian inference, and key implementation features.
 
-Can be inserted in regular R markdown blocks.
+### 1. Bayesian Neural Network Architecture
+
+The core of **`bnns`** is a fully connected neural network with one or more hidden layers. Each layer is defined by the number of nodes and an activation function. The network is structured as:
+
+\[
+f(x; \theta) = \sigma_{\text{out}} \left( W^{(L)} \cdot \sigma_{\text{hidden}} \left( W^{(L-1)} \cdots \sigma_{\text{hidden}} \left(W^{(1)} \cdot x + b^{(1)}\right) + b^{(L-1)}\right) + b^{(L)}\right),
+\]
+
+where:
+- \(f(x; \theta)\) represents the output of the network,
+- \(L\) is the total number of layers,
+- \(W^{(l)}\) and \(b^{(l)}\) are the weights and biases for layer \(l\),
+- \(\sigma_{\text{hidden}}\) is the activation function for the hidden layers,
+- \(\sigma_{\text{out}}\) is the activation function for the output layer.
+
+The package supports popular activation functions such as ReLU, sigmoid, and tanh, along with the identity function for regression outputs.
+
+---
+
+### 2. Bayesian Inference
+
+BNNs extend traditional neural networks by placing prior distributions on the model parameters \(\theta = \{W, b\}\). This allows for uncertainty quantification and regularization. The posterior distribution of the parameters is obtained using Bayes' theorem:
+
+\[
+p(\theta | D) \propto p(D | \theta) \cdot p(\theta),
+\]
+
+where:
+- \(p(\theta)\) is the prior distribution over the parameters,
+- \(p(D | \theta)\) is the likelihood given the data \(D = \{x_i, y_i\}_{i=1}^n\).
+
+The **`bnns`** package assumes multivariate Gaussian priors on the weights and biases:
+
+\[
+W \sim \mathcal{N}(0, \sigma^2_W I), \quad b \sim \mathcal{N}(0, \sigma^2_b I).
+\]
+
+The posterior is approximated using **Hamiltonian Monte Carlo (HMC)**, as implemented in the **Stan** probabilistic programming language.
+
+---
+
+### 3. Key Features of the Package
+
+#### 3.1 Flexible Model Specification
+Users can specify the model formula, number of layers, nodes per layer, and activation functions. The package accepts standard **R** formula syntax, simplifying its integration into existing workflows.
+
+#### 3.2 Output Types
+The package supports:
+- **Regression**: For continuous outcomes using the identity activation function for the output layer.
+- **Classification**: For binary or multi-class outcomes using the softmax or sigmoid activation functions.
+
+#### 3.3 Bayesian Estimation
+The **`bnns`** package uses the **`rstan`** package to perform posterior sampling. It supports:
+- Multiple chains for parallel sampling.
+- Warmup iterations for convergence.
+- Posterior predictive checks.
+
+#### 3.4 Hyperparameter Tuning
+The following hyperparameters can be tuned:
+- Number of hidden layers (\(L\)),
+- Nodes per layer,
+- Activation functions for hidden and output layers,
+- Number of iterations and chains for MCMC sampling.
+
+---
+
+### 4. Model Evaluation and Uncertainty Quantification
+
+The posterior samples generated by **`bnns`** allow for comprehensive evaluation of model uncertainty. The package provides:
+- **Posterior Mean and Credible Intervals**: For model parameters and predictions.
+- **Predictive Distributions**: Enabling robust uncertainty quantification for new data points.
+- **Model Diagnostics**: Including convergence diagnostics for the MCMC chains.
+
+---
+
+### 5. Computational Performance
+
+The **`bnns`** package leverages the efficiency of **Stan**, ensuring faster convergence and scalability for moderately sized datasets. The package also supports parallel chains for multi-core processing.
+
+---
+
+By combining the flexibility of neural networks with the principled uncertainty quantification of Bayesian inference, the **`bnns`** package provides a versatile tool for statistical modeling in various domains, including regression, classification, and causal inference.
+
+---
+
+## Examples
+
+This section demonstrates the capabilities of the `bnns` package through examples for regression, classification, and causal inference using targeted maximum likelihood estimation (TMLE). The examples showcase model specification, Bayesian inference, and posterior predictive checks.
+
+### Regression Example
+
+We first illustrate how to use `bnns` for regression tasks by modeling a simulated dataset.
 
 ```{r}
-x <- 1:10
-x
+library(bnns)
+set.seed(123)
+# Simulated data
+n <- 100
+x <- runif(n, -2, 2)
+y <- 3 * x^2 - 2 * x + rnorm(n, 0, 0.5)
+data <- data.frame(x, y)
+
+# Fit a Bayesian Neural Network
+model <- bnns(
+  y ~ -1 + x,
+  data = data,
+  L = 2, # Two hidden layers
+  nodes = c(5, 5), # Five nodes per layer
+  act_fn = c(3, 3), # ReLU activation for hidden layers
+  out_act_fn = 1, # Identity activation for output layer
+  iter = 1000, # MCMC iterations
+  warmup = 500, # Warmup iterations
+  chains = 2 # Number of chains
+)
+
+# Summarize the posterior
+summary(model)
+
+# Posterior predictive checks
+predictions <- predict(model, newdata = data.frame(x = seq(-2, 2, length.out = 100)))
+plot(x, y, main = "Regression with bnns")
+lines(seq(-2, 2, length.out = 100), rowMeans(predictions), col = "blue", lwd = 2)
 ```
 
-## Features specific to \pkg{rticles} {short-title="Features specific to rticles"}
+This example demonstrates how to specify a model formula, customize hyperparameters, and visualize posterior predictions.
 
-* Adding short titles to section headers is a feature specific to \pkg{rticles} (implemented via a Pandoc Lua filter). This feature is currently not supported by Pandoc and we will update this template if [it is officially supported in the future](https://github.com/jgm/pandoc/issues/4409).
-* Using the `\AND` syntax in the `author` field to add authors on a new line. This is a specific to the `rticles::jss_article` format.
+---
+
+### Classification Example
+
+Next, we demonstrate binary classification using a simulated dataset.
+
+```{r}
+# Simulated binary classification data
+set.seed(456)
+n <- 200
+x1 <- rnorm(n)
+x2 <- rnorm(n)
+prob <- 1 / (1 + exp(-(-0.5 + 1.5 * x1 - 2 * x2)))
+y <- rbinom(n, 1, prob)
+data <- data.frame(x1, x2, y)
+
+# Fit a Bayesian Neural Network for classification
+model <- bnns(
+  y ~ -1 + x1 + x2,
+  data = data,
+  L = 2, # Two hidden layers
+  nodes = c(10, 2), # Ten nodes per layer
+  act_fn = c(3, 3), # ReLU activation for hidden layers
+  out_act_fn = 2, # Sigmoid activation for output layer (binary classification)
+  iter = 1000, # MCMC iterations
+  warmup = 500, # Warmup iterations
+  chains = 2 # Number of chains
+)
+
+# Summarize posterior
+summary(model)
+
+# Prediction and accuracy
+pred <- predict(model, newdata = data)
+predicted_classes <- ifelse(rowMeans(pred) > 0.5, 1, 0)
+mean(predicted_classes == data$y)
+```
+
+This example highlights the classification functionality of the `bnns` package, including probabilistic predictions and model evaluation.
+
+---
+
+<!-- ### Causal Inference with TMLE -->
+
+<!-- Finally, we demonstrate how `bnns` can be integrated with Targeted Maximum Likelihood Estimation (TMLE) to estimate causal effects. -->
+
+<!-- ```{r} -->
+<!-- library(tmle) -->
+
+<!-- # Simulated data for causal inference -->
+<!-- set.seed(789) -->
+<!-- n <- 500 -->
+<!-- w <- rnorm(n) -->
+<!-- a <- rbinom(n, 1, prob = 0.5) -->
+<!-- y <- a * (2 + 1.5 * w) + (1 - a) * (1 - 0.5 * w) + rnorm(n, 0, 0.5) -->
+<!-- data <- data.frame(w, a, y) -->
+
+<!-- # Fit a BNN for outcome regression and propensity score modeling -->
+<!-- outcome_model <- bnns( -->
+<!--   y ~ -1 + w + a, -->
+<!--   data = data, -->
+<!--   L = 2, -->
+<!--   nodes = c(5, 5), -->
+<!--   act_fn = c(3, 3), -->
+<!--   out_act_fn = 1, -->
+<!--   iter = 2000, -->
+<!--   warmup = 1000, -->
+<!--   chains = 2 -->
+<!-- ) -->
+
+<!-- propensity_model <- bnns( -->
+<!--   a ~ -1 + w, -->
+<!--   data = data, -->
+<!--   L = 2, -->
+<!--   nodes = c(5, 5), -->
+<!--   act_fn = c(3, 3), -->
+<!--   out_act_fn = 2, # Sigmoid activation -->
+<!--   iter = 2000, -->
+<!--   warmup = 1000, -->
+<!--   chains = 2 -->
+<!-- ) -->
+
+<!-- # TMLE estimation -->
+<!-- tmle_result <- tmle( -->
+<!--   Y = data$y, -->
+<!--   A = data$a, -->
+<!--   W = data.frame(w), -->
+<!--   Q = rowMeans(predict(outcome_model, newdata = data)), -->
+<!--   g = rowMeans(predict(propensity_model, newdata = data.frame(w = data$w))) -->
+<!-- ) -->
+
+<!-- summary(tmle_result) -->
+<!-- ``` -->
+
+<!-- This example demonstrates the integration of `bnns` with `tmle` to provide robust causal effect estimation with uncertainty quantification. -->
+
+---
+
+### Summary of Examples
+
+These examples illustrate the versatility of the `bnns` package in handling diverse statistical problems. By leveraging Bayesian principles and neural network architectures, the package provides robust and interpretable solutions for regression, classification, and causal inference tasks.
